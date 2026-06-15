@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MoodScape - 음악으로 찾는 나만의 공간</title>
+<style>
+/* 변수 및 기본 스타일 정의 */
+:root {
+    --bg-dark: #0f111a;
+    --card-bg: #1a1d2e;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --accent-primary: #8b5cf6;
+    --accent-secondary: #06b6d4;
+    --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+    --border-color: #2d3142;
+}
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+
+    body {
+        background-color: var(--bg-dark);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem 1rem;
+        overflow-x: hidden;
+    }
+
+    /* 컨테이너 */
+    .container {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+    }
+
+    /* 헤더 디자인 */
+    header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .logo {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.05em;
+    }
+
+    header p {
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+
+    /* 탭 메뉴 */
+    .tabs {
+        display: flex;
+        background-color: var(--card-bg);
+        padding: 0.35rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .tab-btn {
+        flex: 1;
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        padding: 0.75rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .tab-btn.active {
+        background: var(--accent-gradient);
+        color: white;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+    }
+
+    /* 카드 공통 스타일 */
+    .card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        margin-bottom: 2rem;
+    }
+
+    .panel {
+        display: none;
+    }
+
+    .panel.active {
+        display: block;
+    }
+
+    /* 입력 폼 스타일 */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    label {
+        display: block;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    input, select {
+        width: 100%;
+        background-color: #0f111a;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        color: white;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+        border-color: var(--accent-primary);
+    }
+
+    .hint-text {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+        display: block;
+    }
+
+    /* 버튼 스타일 */
+    .submit-btn {
+        width: 100%;
+        background: var(--accent-gradient);
+        color: white;
+        border: none;
+        padding: 1.1rem;
+        border-radius: 10px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s;
+        box-shadow: 0 4px 14px rgba(139, 92, 246, 0.3);
+    }
+
+    .submit-btn:hover {
+        opacity: 0.95;
+    }
+
+    .submit-btn:active {
+        transform: scale(0.98);
+    }
+
+    /* 로딩 애니메이션 */
+    .loading-container {
+        display: none;
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(139, 92, 246, 0.1);
+        border-left-color: var(--accent-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1.5rem;
+    }
+
+    .loading-text {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--accent-secondary);
+        margin-bottom: 0.5rem;
+    }
+
+    .loading-subtext {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 1; }
+    }
+
+    /* 결과 화면 스타일 */
+    .result-container {
+        display: none;
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-header {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .source-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: #24283d;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .source-tag {
+        background-color: var(--accent-primary);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .result-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* 장소 카드 그리드 */
+    .places-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .place-card {
+        background-color: #24283d;
+        border-radius: 12px;
+        padding: 1.25rem;
+        border: 1px solid rgba(255,255,255,0.05);
+        transition: transform 0.2s;
+    }
+
+    .place-card:hover {
+        transform: translateX(4px);
+        border-color: var(--accent-secondary);
+    }
+
+    .place-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.25rem;
+    }
+
+    .place-category {
+        font-size: 0.8rem;
+        color: var(--accent-secondary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .place-desc {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        line-height: 1.4;
+        margin-bottom: 0.75rem;
+    }
+
+    .place-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .tag {
+        background-color: rgba(255, 255, 255, 0.08);
+        color: #d1d5db;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo">MoodScape</div>
+        <p>오늘 나의 음악, 오늘 가야 할 공간</p>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(event, 'music-to-place')">🎵 음악으로 공간 찾기</button>
+        <button class="tab-btn" onclick="switchTab(event, 'place-to-music')">📍 공간으로 음악 찾기</button>
+    </div>
+
+    <div class="card">
+
+        <div id="music-to-place" class="panel active">
+            <div class="form-group">
+                <label for="music-input">유튜브 링크 또는 노래 제목 입력</label>
+                <div class="input-wrapper">
+                    <input type="text" id="music-input" placeholder="예: https://youtube.com/... 또는 뉴진스 Ditto">
+                </div>
+                <span class="hint-text">* 가상 Spotify API 분석 및 댓글 키워드 크롤링 시뮬레이션이 작동합니다.</span>
+            </div>
+            <button class="submit-btn" onclick="analyzeMusic()">분위기 분석 및 공간 추천</button>
+        </div>
+
+        <div id="place-to-music" class="panel">
+            <div class="form-group">
+                <label for="place-select">현재 계신 곳이나 가고 싶은 공간 선택</label>
+                <select id="place-select">
+                    <option value="hanriver">여의도 한강공원 (탁 트인 밤바람, 산책)</option>
+                    <option value="seongsu">성수동 힙한 이자카야/클럽 (에너지, 네온사인)</option>
+                    <option value="seochon">서촌 골목길 소품샵/독립서점 (고즈넉함, 잔잔함)</option>
+                    <option value="museum">시립 미술관/조용한 LP바 (사색, 몰입)</option>
+                </select>
+            </div>
+            <button class="submit-btn" onclick="analyzePlace()">공간에 어울리는 음악 찾기</button>
+        </div>
+
+    </div>
+
+    <div class="card loading-container" id="loading-box">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-title">음악 감성 데이터 추출 중...</div>
+        <div class="loading-subtext" id="loading-sub">스포티파이 오디오 피처(Valence, Energy)를 로드하고 있습니다.</div>
+    </div>
+
+    <div class="card result-container" id="result-box">
+        <div class="result-header">
+            <div class="source-info" id="source-display"></div>
+            <div class="result-title" id="result-headline">✨ 매칭된 최적의 스페이스</div>
+        </div>
+        <div class="places-grid" id="places-list"></div>
+    </div>
+</div>
+
+<script>
+    // --- 가상 데이터베이스 (기반 기준 설계) ---
+    const placeDatabase = [
+        {
+            id: "energetic",
+            category: "액티비티 / 힙플레이스",
+            name: "성수동 힙스터 이자카야 & 클럽 라운지",
+            desc: "높은 에너지와 빠른 템포에 어울리는 공간입니다. 네온 조명과 세련된 비트가 흐르는 성수 골목의 비밀 성지.",
+            tags: ["#시티팝", "#힙한", "#드라이브", "#에너지_폭발"]
+        },
+        {
+            id: "chill",
+            category: "로컬 스트리트 / 감성스팟",
+            name: "서촌 골목길 독립서점 & 숨은 한옥카페",
+            desc: "조용하고 잔잔한 인디 음악이나 어쿠스틱에 완벽히 녹아드는 공간입니다. 고즈넉한 돌담길 옆에서 즐기는 여유.",
+            tags: ["#새벽", "#잔잔한", "#힐링", "#사색"]
+        },
+        {
+            id: "deep",
+            category: "문화예술 / 아지트",
+            name: "한남동 지하 LP바 & 현대 미술관",
+            desc: "재즈나 웅장한 뉴에이지, 클래식 선율이 머무는 공간입니다. 아날로그 감성과 예술적 영감을 깊이 채울 수 있습니다.",
+            tags: ["#재즈", "#클래식", "#비오는날", "#딥한감성"]
+        },
+        {
+            id: "refresh",
+            category: "자연 / 오픈스페이스",
+            name: "여의도 한강공원 & 대형 식물원 카페",
+            desc: "청량하고 밝은 메이저 코드의 음악에 최적인 탁 트인 야외 공간입니다. 싱그러운 바람과 푸른 잎사귀들이 반겨줍니다.",
+            tags: ["#산책", "#청량한", "#오후", "#드라이브"]
+        }
+    ];
+
+    const musicDatabase = {
+        hanriver: {
+            title: "여의도 한강공원 추천 플레이리스트",
+            items: [
+                { name: "10CM - 그라데이션", desc: "청량한 바람과 페달을 밟으며 듣기 좋은 미디엄 템포 곡" },
+                { name: "Day6 - 한 페이지가 될 수 있게", desc: "시원하게 터지는 밴드 사운드가 한강 야경과 조화되는 곡" }
+            ]
+        },
+        seongsu: {
+            title: "성수동 힙한 라운지 추천 플레이리스트",
+            items: [
+                { name: "NewJeans - OMG / Ditto", desc: "트렌디한 비트감으로 힙한 공간의 감성을 채워주는 음악" },
+                { name: "Peggy Gou - (It Goes Like) Nanana", desc: "에너제틱한 하우스 비트로 기분을 업시켜주는 곡" }
+            ]
+        },
+        seochon: {
+            title: "서촌 독립서점 추천 플레이리스트",
+            items: [
+                { name: "최유리 - 숲", desc: "나직한 목소리와 잔잔 한 어쿠스틱 기타가 따뜻한 공간을 만드는 곡" },
+                { name: "잔나비 - 주저하는 연인들을 위해", desc: "레트로하면서도 서정적인 멜로디가 서촌 골목길에 안착합니다." }
+            ]
+        },
+        museum: {
+            title: "시립 미술관 & LP바 추천 플레이리스트",
+            items: [
+                { name: "Bill Evans - My Foolish Heart", desc: "지적인 사색을 도와주는 차분하고 묵직한 정통 재즈" },
+                { name: "Yiruma - River Flows In You", desc: "공간의 미학을 완성해주는 서정적이고 웅장한 피아노 선율" }
+            ]
+        }
+    };
+
+    // 탭 전환 기능 수정
+    function switchTab(e, tabId) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+
+        e.target.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+
+        document.getElementById('loading-box').style.display = 'none';
+        document.getElementById('result-box').style.display = 'none';
+    }
+
+    // UX: 부드러운 로딩 연출 함수
+    function runLoading(steps, callback) {
+        const loadingBox = document.getElementById('loading-box');
+        const resultBox = document.getElementById('result-box');
+
+        resultBox.style.display = 'none';
+        loadingBox.style.display = 'block';
+        loadingBox.scrollIntoView({ behavior: 'smooth' });
+
+        let currentStep = 0;
+
+        function nextStep() {
+            if (currentStep < steps.length) {
+                document.getElementById('loading-title').innerText = steps[currentStep].title;
+                document.getElementById('loading-sub').innerText = steps[currentStep].sub;
+                currentStep++;
+                setTimeout(nextStep, 1200);
+            } else {
+                loadingBox.style.display = 'none';
+                callback();
+            }
+        }
+        nextStep();
+    }
+
+    // 기능 1: 음악 입력 -> 장소 분석 및 추천
+    function analyzeMusic() {
+        const inputVal = document.getElementById('music-input').value.trim();
+        if (!inputVal) {
+            alert('노래 제목이나 링크를 입력해주세요!');
+            return;
+        }
+
+        const loadingSteps = [
+            { title: "🎵 오디오 피처 분석 중...", sub: "Spotify API 연동을 통해 Valence, Energy, Tempo 수치를 가져옵니다." },
+            { title: "🏷️ 소셜 태그 크롤링 중...", sub: "유튜브 댓글 및 해시태그에서 [#시티팝, #새벽, #드라이브] 키워드를 추출하는 중입니다." },
+            { title: "🧩 공간 매칭 알고리즘 가동...", sub: "음악 감성 수치와 가장 가까운 최적의 라이프스타일 공간을 계산 중입니다." }
+        ];
+
+        runLoading(loadingSteps, function() {
+            const resultBox = document.getElementById('result-box');
+            const sourceDisplay = document.getElementById('source-display');
+            const resultHeadline = document.getElementById('result-headline');
+            const placesList = document.getElementById('places-list');
+
+            let matchedPlaces = [];
+            let mockFeatures = "";
+
+            const lowerInput = inputVal.toLowerCase();
+            if (lowerInput.includes("ditto") || lowerInput.includes("디토") || lowerInput.includes("시티팝") || lowerInput.includes("drive") || lowerInput.includes("드라이브")) {
+                matchedPlaces = [placeDatabase[0], placeDatabase[3]];
+                mockFeatures = `📊 Spotify Audio Features — Energy: 0.78, Valence: 0.65 | 🏷️ 주요 키워드: #시티팝 #퇴근길`;
+            } else if (lowerInput.includes("새벽") || lowerInput.includes("잔잔") || lowerInput.includes("인디") || lowerInput.includes("비")) {
+                matchedPlaces = [placeDatabase[1], placeDatabase[2]];
+                mockFeatures = `📊 Spotify Audio Features — Energy: 0.24, Valence: 0.38 | 🏷️ 주요 키워드: #새벽감성 #독립서점`;
+            } else {
+                matchedPlaces = [placeDatabase[3], placeDatabase[1]];
+                mockFeatures = `📊 Spotify Audio Features — Energy: 0.52, Valence: 0.71 | 🏷️ 주요 키워드: #산책 #기분전환`;
+            }
+
+            // HTML 이스케이프 처리로 보안 및 깨짐 방지
+            const safeInput = inputVal.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const displayInput = safeInput.length > 25 ? safeInput.substring(0,25)+'...' : safeInput;
+
+            sourceDisplay.innerHTML = `<span class="source-tag">분석 음원</span> <span>"${displayInput}"</span>`;
+            resultHeadline.innerHTML = `✨ 분석 결과에 맞는 추천 공간 <br><small style="font-size:0.8rem; font-weight:normal; color:var(--text-muted); display:block; margin-top:0.3rem;">${mockFeatures}</small>`;
+
+            placesList.innerHTML = "";
+            matchedPlaces.forEach(place => {
+                const tagsHtml = place.tags.map(t => `<span class="tag">${t}</span>`).join('');
+                placesList.innerHTML += `
+                    <div class="place-card">
+                        <div class="place-category">${place.category}</div>
+                        <div class="place-name">${place.name}</div>
+                        <div class="place-desc">${place.desc}</div>
+                        <div class="place-tags">${tagsHtml}</div>
+                    </div>
+                `;
+            });
+
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    // 기능 2: 반대 기능 (공간 -> 음악 추천)
+    function analyzePlace() {
+        const selectEl = document.getElementById('place-select');
+        const selectedVal = selectEl.value;
+        const selectedText = selectEl.options[selectEl.selectedIndex].text;
+
+        const loadingSteps = [
+            { title: "📍 공간 조도 및 분위기 스캔 중...", sub: "선택하신 장소 카테고리의 공간 고유 무드 코드를 읽어옵니다." },
+            { title: "🎼 플레이리스트 하모니 필터링...", sub: "이 장소에 있는 유저들이 가장 많이 청취한 감성 데이터베이스 매칭 중..." }
+        ];
+
+        runLoading(loadingSteps, function() {
+            const resultBox = document.getElementById('result-box');
+            const sourceDisplay = document.getElementById('source-display');
+            const resultHeadline = document.getElementById('result-headline');
+            const placesList = document.getElementById('places-list');
+
+            const musicData = musicDatabase[selectedVal];
+
+            sourceDisplay.innerHTML = `<span class="source-tag" style="background-color:var(--accent-secondary)">선택 공간</span> <span>${selectedText.split('(')[0]}</span>`;
+            resultHeadline.innerHTML = `🎵 이 장소에 스며드는 추천 플레이리스트`;
+
+            placesList.innerHTML = "";
+            musicData.items.forEach(track => {
+                placesList.innerHTML += `
+                    <div class="place-card" style="border-left: 3px solid var(--accent-secondary);">
+                        <div class="place-name" style="color:var(--accent-secondary)">${track.name}</div>
+                        <div class="place-desc" style="margin-bottom:0;">${track.desc}</div>
+                    </div>
+                `;
+            });
+
+            resultBox.style.display = 'block';
+            resultBox.scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+</script>
+</body>
+</html>
